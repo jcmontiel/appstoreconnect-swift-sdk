@@ -84,6 +84,7 @@ extension APIEndpoint.V1.Apps.WithID {
 
 			public enum FieldsApps: String, Codable, CaseIterable {
 				case alternativeDistributionKey
+				case analyticsReportRequests
 				case appAvailability
 				case appClips
 				case appCustomProductPages
@@ -94,8 +95,6 @@ extension APIEndpoint.V1.Apps.WithID {
 				case appPriceSchedule
 				case appStoreVersionExperimentsV2
 				case appStoreVersions
-				case availableInNewTerritories
-				case availableTerritories
 				case betaAppLocalizations
 				case betaAppReviewDetail
 				case betaGroups
@@ -117,8 +116,6 @@ extension APIEndpoint.V1.Apps.WithID {
 				case perfPowerMetrics
 				case preOrder
 				case preReleaseVersions
-				case pricePoints
-				case prices
 				case primaryLocale
 				case promotedPurchases
 				case reviewSubmissions

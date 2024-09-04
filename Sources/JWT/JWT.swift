@@ -28,7 +28,7 @@ private struct Header: Codable {
 }
 
 /// The JWT Payload contains information specific to the App Store Connect APIs, such as issuer ID and expiration time.
-private struct Payload: Codable {
+private struct TeamPayload: Codable {
 
     enum CodingKeys: String, CodingKey {
         case issuerIdentifier = "iss"
@@ -46,11 +46,29 @@ private struct Payload: Codable {
     let audience: String = "appstoreconnect-v1"
 }
 
+private struct IndividualPayload: Codable {
+
+    enum CodingKeys: String, CodingKey {
+        case subject = "sub"
+        case expirationTime = "exp"
+        case audience = "aud"
+    }
+
+    /// The subject to pass to the payload when using individual keys
+    let subject: String = "user"
+
+    /// The token's expiration time, in Unix epoch time; tokens that expire more than 20 minutes in the future are not valid (Ex: 1528408800)
+    let expirationTime: TimeInterval
+
+    /// The required audience which is set to the App Store Connect version.
+    let audience: String = "appstoreconnect-v1"
+}
+
 protocol JWTCreatable {
     func signedToken(using privateKey: JWT.PrivateKey) throws -> JWT.Token
 }
 
-struct JWT: Codable, JWTCreatable {
+public struct JWT: Codable, JWTCreatable {
 
     public enum Error: Swift.Error, LocalizedError {
 
@@ -70,8 +88,8 @@ struct JWT: Codable, JWTCreatable {
         }
     }
 
-    typealias Token = String
-    typealias PrivateKey = P256.Signing.PrivateKey
+    public typealias Token = String
+    public typealias PrivateKey = P256.Signing.PrivateKey
 
     typealias DateProvider = () -> Date
     static let defaultDateProvider: DateProvider = {
@@ -82,7 +100,7 @@ struct JWT: Codable, JWTCreatable {
     private let header: Header
 
     /// Your issuer identifier from the API Keys page in App Store Connect (Ex: 57246542-96fe-1a63-e053-0824d011072a)
-    private let issuerIdentifier: String
+    private let issuerIdentifier: String?
 
     /// The token's expiration duration. Tokens that expire more than 20 minutes in the future are not valid, so set it to a max of 20 minutes.
     private let expireDuration: TimeInterval
@@ -94,7 +112,7 @@ struct JWT: Codable, JWTCreatable {
     ///   - issuerIdentifier: Your issuer identifier from the API Keys page in App Store Connect (Ex: 57246542-96fe-1a63-e053-0824d011072a)
     ///   - expireDuration: The token's expiration duration.
     ///   Tokens that expire more than 20 minutes in the future are not valid, so set it to a max of 20 minutes.
-    public init(keyIdentifier: String, issuerIdentifier: String, expireDuration: TimeInterval) {
+    public init(keyIdentifier: String, issuerIdentifier: String?, expireDuration: TimeInterval) {
         header = Header(keyIdentifier: keyIdentifier)
         self.issuerIdentifier = issuerIdentifier
         self.expireDuration = expireDuration
@@ -102,7 +120,14 @@ struct JWT: Codable, JWTCreatable {
 
     /// Combine the header and the payload as a digest for signing.
     private func digest(dateProvider: DateProvider) throws -> String {
-        let payload = Payload(issuerIdentifier: issuerIdentifier, expirationTime: dateProvider().addingTimeInterval(expireDuration).timeIntervalSince1970)
+        let expirationTime = dateProvider().addingTimeInterval(expireDuration).timeIntervalSince1970
+        let payload: Codable
+        if let issuerIdentifier {
+            payload = TeamPayload(issuerIdentifier: issuerIdentifier, expirationTime: expirationTime)
+        } else {
+            payload = IndividualPayload(expirationTime: expirationTime)
+        }
+        
         let headerString = try JSONEncoder().encode(header.self).base64URLEncoded()
         let payloadString = try JSONEncoder().encode(payload.self).base64URLEncoded()
         return "\(headerString).\(payloadString)"

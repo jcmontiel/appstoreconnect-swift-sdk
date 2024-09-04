@@ -31,7 +31,7 @@ import AppStoreConnect_Swift_SDK
 ```
 
 #### 2. Create your API Configuration
-Go to [https://appstoreconnect.apple.com/access/api](https://appstoreconnect.apple.com/access/api) and create your own key. This is also the page to find your private key ID and the issuer ID.
+Go to [https://appstoreconnect.apple.com/access/integrations/api](https://appstoreconnect.apple.com/access/integrations/api) and create your own key. This is also the page to find your private key ID and the issuer ID.
 
 After downloading your private key, you can open the .p8 file containing the private key in a text editor which will show like the following content:
 
@@ -48,6 +48,14 @@ Use this private key together with the issuer ID and the private key ID to creat
 ```swift
 let configuration = APIConfiguration(issuerID: "<YOUR ISSUER ID>", privateKeyID: "<YOUR PRIVATE KEY ID>", privateKey: "<YOUR PRIVATE KEY>")
 ```
+
+Alternatively you can pass the path to the .p8 file:
+
+```swift
+let configuration = APIConfiguration(issuerID: "<YOUR ISSUER ID>", privateKeyID: "<YOUR PRIVATE KEY ID>", privateKeyURL: URL(fileURLWithPath: "~/AuthKey_<YOUR PRIVATE KEY ID>.p8"))
+```
+
+You can even omit the `privateKeyID` as it can be inferred from the name of the .p8 file.
 
 #### 3. Create an APIProvider and perform a request
 After creating an `APIProvider` instance with your `APIConfiguration` you can start performing your first request.
@@ -192,6 +200,9 @@ The AppsMan app is a project that will allow developers to manage apps localisab
 
 - [Localiji: Localizations for App Store](https://apps.apple.com/us/app/localiji/id6467663963) developed by Nicolas Kick.
 Localiji manages a local copy of your app localizations from App Store Connect and allows you to effortlessly sync the changes. Edit individual attributes, like your app’s description, release notes or screenshots. Export an entire language, import the translations again and upload them to App Store Connect with only a few clicks.
+
+- [Five Stars: Reviews & Ratings](https://apps.apple.com/app/id1634650919) developed by [Mathias Emil Mortensen](https://github.com/mathiasemil).
+Five Stars helps app developers read and reply to App Store reviews from their users. Translate reviews, reply with customizable templates and AI-powered quick replies, filter by region, and view global app ratings from any app. Five Stars is available for iPhone and iPad, with a Mac version coming in Spring 2024.
 
 
 ## License

@@ -27,7 +27,7 @@ public struct APIConfiguration {
     let privateKey: JWT.PrivateKey
 
     /// Your issuer ID from the API Keys page in App Store Connect (Ex: 57246542-96fe-1a63-e053-0824d011072a)
-    let issuerID: String
+    let issuerID: String?
 
     /// Creates a new API configuration to use for initialising the API Provider.
     ///
@@ -43,6 +43,68 @@ public struct APIConfiguration {
         }
         do {
             self.privateKey = try JWT.PrivateKey(derRepresentation: base64Key)
+        } catch {
+            throw JWT.Error.invalidPrivateKey
+        }
+    }
+    
+    /// Creates a new API configuration to use for initialising the API Provider.
+    ///
+    /// - Parameters:
+    ///   - individualPrivateKeyID: Your private key ID from App Store Connect (Ex: 2X9R4HXF34)
+    ///   - individualPrivateKey: The contents of the individual private key from App Store Connect
+    public init(individualPrivateKeyID: String, individualPrivateKey: String) throws {
+        self.privateKeyID = individualPrivateKeyID
+        self.issuerID = nil
+
+        guard let base64Key = Data(base64Encoded: individualPrivateKey) else {
+            throw JWT.Error.invalidBase64EncodedPrivateKey
+        }
+        do {
+            self.privateKey = try JWT.PrivateKey(derRepresentation: base64Key)
+        } catch {
+            throw JWT.Error.invalidPrivateKey
+        }
+    }
+    
+    /// Creates a new API configuration to use for initialising the API Provider.
+    ///
+    /// - Parameters:
+    ///   - issuerID: Your issuer ID from the API Keys page in App Store Connect (Ex: 57246542-96fe-1a63-e053-0824d011072a)
+    ///   - privateKeyID: Your private key ID from App Store Connect (Ex: 2X9R4HXF34). Will be inferred from `privateKeyURL` if nil.
+    ///   - privateKeyURL: A file URL that references the path to your private key file.
+    public init(issuerID: String, privateKeyID: String? = nil, privateKeyURL: URL) throws {
+        self.issuerID = issuerID
+        if let privateKeyID = privateKeyID {
+            self.privateKeyID = privateKeyID
+        } else {
+            let filename = privateKeyURL.deletingPathExtension().lastPathComponent
+            self.privateKeyID = String(filename.suffix(10))
+        }
+        do {
+            let pemEncodedPrivateKey = try String(contentsOf: privateKeyURL)
+            self.privateKey = try JWT.PrivateKey(pemRepresentation: pemEncodedPrivateKey)
+        } catch {
+            throw JWT.Error.invalidPrivateKey
+        }
+    }
+    
+    /// Creates a new API configuration to use for initialising the API Provider.
+    ///
+    /// - Parameters:
+    ///   - individualPrivateKeyID: Your private key ID from App Store Connect (Ex: 2X9R4HXF34). Will be inferred from `privateKeyURL` if nil.
+    ///   - individualPrivateKeyURL: A file URL that references the path to your private key file.
+    public init(individualPrivateKeyID: String? = nil, privateKeyURL: URL) throws {
+        self.issuerID = nil
+        if let individualPrivateKeyID {
+            self.privateKeyID = individualPrivateKeyID
+        } else {
+            let filename = privateKeyURL.deletingPathExtension().lastPathComponent
+            self.privateKeyID = String(filename.suffix(10))
+        }
+        do {
+            let pemEncodedPrivateKey = try String(contentsOf: privateKeyURL)
+            self.privateKey = try JWT.PrivateKey(pemRepresentation: pemEncodedPrivateKey)
         } catch {
             throw JWT.Error.invalidPrivateKey
         }
@@ -117,6 +179,12 @@ public final class APIProvider {
             }
             formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
             if let date = formatter.date(from: dateStr) {
+                return date
+            }
+            // Example: 2024-01-01T23:59:59.000+00:00
+            let isoDateFormatter = ISO8601DateFormatter()
+            isoDateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = isoDateFormatter.date(from: dateStr) {
                 return date
             }
             throw APIProvider.Error.dateDecodingError(dateStr)

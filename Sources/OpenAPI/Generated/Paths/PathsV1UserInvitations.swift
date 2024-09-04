@@ -38,10 +38,10 @@ extension APIEndpoint.V1 {
 				case developer = "DEVELOPER"
 				case accessToReports = "ACCESS_TO_REPORTS"
 				case customerSupport = "CUSTOMER_SUPPORT"
-				case imageManager = "IMAGE_MANAGER"
 				case createApps = "CREATE_APPS"
 				case cloudManagedDeveloperID = "CLOUD_MANAGED_DEVELOPER_ID"
 				case cloudManagedAppDistribution = "CLOUD_MANAGED_APP_DISTRIBUTION"
+				case generateIndividualKeys = "GENERATE_INDIVIDUAL_KEYS"
 			}
 
 			public enum Sort: String, Codable, CaseIterable {
@@ -68,6 +68,7 @@ extension APIEndpoint.V1 {
 
 			public enum FieldsApps: String, Codable, CaseIterable {
 				case alternativeDistributionKey
+				case analyticsReportRequests
 				case appAvailability
 				case appClips
 				case appCustomProductPages
@@ -78,8 +79,6 @@ extension APIEndpoint.V1 {
 				case appPriceSchedule
 				case appStoreVersionExperimentsV2
 				case appStoreVersions
-				case availableInNewTerritories
-				case availableTerritories
 				case betaAppLocalizations
 				case betaAppReviewDetail
 				case betaGroups
@@ -101,8 +100,6 @@ extension APIEndpoint.V1 {
 				case perfPowerMetrics
 				case preOrder
 				case preReleaseVersions
-				case pricePoints
-				case prices
 				case primaryLocale
 				case promotedPurchases
 				case reviewSubmissions
